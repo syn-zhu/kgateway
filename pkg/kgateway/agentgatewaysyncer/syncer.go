@@ -431,6 +431,10 @@ func (s *Syncer) getProtocolAndTLSConfig(obj *translator.GatewayListener) (api.P
 		return api.Protocol_TLS, tlsConfig, true
 	case gwv1.TCPProtocolType:
 		return api.Protocol_TCP, nil, true
+	// Istio ambient mesh waypoint protocols — after tunnel termination the inner
+	// protocol is HTTP.
+	case translator.IstioProxyProtocol, gwv1.ProtocolType(protocol.HBONE):
+		return api.Protocol_HTTP, nil, true
 	default:
 		return api.Protocol_HTTP, nil, false // Unsupported protocol
 	}
