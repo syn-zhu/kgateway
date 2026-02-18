@@ -57,6 +57,7 @@ const (
 	jwtPolicySuffix             = ":jwt"
 	basicAuthPolicySuffix       = ":basicauth"
 	apiKeyPolicySuffix          = ":apikeyauth" //nolint:gosec
+	aauthPolicySuffix           = ":aauth"
 	directResponseSuffix        = ":direct-response"
 )
 
@@ -546,6 +547,11 @@ func translateTrafficPolicyToAgw(
 		}
 		agwPolicies = append(agwPolicies, basicAuthenticationPolicies...)
 	}
+
+	if traffic.AAuthAuthentication != nil {
+		aauthPolicies := processAAuthPolicy(traffic.AAuthAuthentication, basePolicyName, policyName, policyTarget)
+		agwPolicies = append(agwPolicies, aauthPolicies...)
+	}
 	return agwPolicies, errors.Join(errs...)
 }
 
@@ -801,6 +807,63 @@ func processAPIKeyAuthenticationPolicy(
 		"target", target)
 
 	return []AgwPolicy{{Policy: apiKeyPolicy}}, errors.Join(errs...)
+}
+
+func processAAuthPolicy(
+	aauth *agentgateway.AAuthAuthentication,
+	basePolicyName string,
+	policy types.NamespacedName,
+	target *api.PolicyTarget,
+) []AgwPolicy {
+	p := &api.TrafficPolicySpec_AAuth{}
+
+	switch aauth.Mode {
+	case agentgateway.AAuthAuthenticationModeOptional:
+		p.Mode = int32(api.TrafficPolicySpec_AAuth_OPTIONAL)
+	case agentgateway.AAuthAuthenticationModePermissive:
+		p.Mode = int32(api.TrafficPolicySpec_AAuth_PERMISSIVE)
+	default: // Strict is default
+		p.Mode = int32(api.TrafficPolicySpec_AAuth_STRICT)
+	}
+
+	switch aauth.RequiredScheme {
+	case agentgateway.AAuthRequiredSchemeJwks:
+		p.RequiredScheme = int32(api.TrafficPolicySpec_AAuth_JWKS)
+	case agentgateway.AAuthRequiredSchemeJwt:
+		p.RequiredScheme = int32(api.TrafficPolicySpec_AAuth_JWT_SCHEME)
+	default: // Hwk is default
+		p.RequiredScheme = int32(api.TrafficPolicySpec_AAuth_HWK)
+	}
+
+	if aauth.TimestampTolerance != nil {
+		p.TimestampTolerance = *aauth.TimestampTolerance
+	} else {
+		p.TimestampTolerance = 60 // default
+	}
+
+	if aauth.Challenge != nil {
+		p.Challenge = &api.TrafficPolicySpec_AAuth_Challenge{
+			AuthServer: aauth.Challenge.AuthServer,
+		}
+	}
+
+	aauthPolicy := &api.Policy{
+		Key:    basePolicyName + aauthPolicySuffix + attachmentName(target),
+		Name:   TypedResourceFromName(wellknown.AgentgatewayPolicyGVK.Kind, policy),
+		Target: target,
+		Kind: &api.Policy_Traffic{
+			Traffic: &api.TrafficPolicySpec{
+				Kind: &api.TrafficPolicySpec_Aauth{Aauth: p},
+			},
+		},
+	}
+
+	logger.Debug("generated aauth policy",
+		"policy", basePolicyName,
+		"agentgateway_policy", aauthPolicy.Name,
+		"target", target)
+
+	return []AgwPolicy{{Policy: aauthPolicy}}
 }
 
 func processTimeoutPolicy(timeout *agentgateway.Timeouts, basePolicyName string, policy types.NamespacedName, target *api.PolicyTarget) []AgwPolicy {
