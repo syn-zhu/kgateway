@@ -505,6 +505,12 @@ type Traffic struct {
 	// +optional
 	APIKeyAuthentication *APIKeyAuthentication `json:"apiKeyAuthentication,omitempty"`
 
+	// aAuthAuthentication authenticates agents using the AAuth protocol (RFC 9421 HTTP Message Signatures).
+	// AAuth provides progressive authentication levels: hwk (any signature), jwks (verifiable identity),
+	// and jwt (authorization token with delegated claims).
+	// +optional
+	AAuthAuthentication *AAuthAuthentication `json:"aAuthAuthentication,omitempty"`
+
 	// direct response configures the policy to send a direct response to the client.
 	// +optional
 	DirectResponse *DirectResponse `json:"directResponse,omitempty"`
@@ -733,6 +739,77 @@ type APIKeyAuthentication struct {
 	//   client2: "k-456"
 	// +optional
 	SecretSelector *SecretSelector `json:"secretSelector,omitempty"`
+}
+
+// +kubebuilder:validation:Enum=Strict;Optional;Permissive
+type AAuthAuthenticationMode string
+
+const (
+	// A valid HTTP Message Signature must be present and meet the required scheme level.
+	// This is the default option.
+	AAuthAuthenticationModeStrict AAuthAuthenticationMode = "Strict"
+	// If a signature exists, validate it. Otherwise allow the request.
+	// Warning: this allows requests without any signature!
+	AAuthAuthenticationModeOptional AAuthAuthenticationMode = "Optional"
+	// Requests are never rejected. Useful for logging and claims extraction.
+	// Warning: this allows all requests regardless of signature!
+	AAuthAuthenticationModePermissive AAuthAuthenticationMode = "Permissive"
+)
+
+// +kubebuilder:validation:Enum=Hwk;Jwks;Jwt
+type AAuthRequiredScheme string
+
+const (
+	// Hwk requires any valid HTTP Message Signature (lowest level).
+	// Any scheme (hwk, jwks, jwt) satisfies this requirement.
+	AAuthRequiredSchemeHwk AAuthRequiredScheme = "Hwk"
+	// Jwks requires a verifiable identity via JWKS key discovery.
+	// Both jwks and jwt schemes satisfy this requirement.
+	AAuthRequiredSchemeJwks AAuthRequiredScheme = "Jwks"
+	// Jwt requires a full authorization token with delegated claims (highest level).
+	// Only the jwt scheme satisfies this requirement.
+	AAuthRequiredSchemeJwt AAuthRequiredScheme = "Jwt"
+)
+
+// AAuthAuthentication authenticates agents using the AAuth protocol (RFC 9421 HTTP Message Signatures).
+// It verifies that incoming requests carry valid cryptographic signatures, optionally requiring
+// progressive authentication levels from simple key ownership (hwk) to full authorization tokens (jwt).
+type AAuthAuthentication struct {
+	// mode specifies the validation mode for AAuth authentication.
+	// +kubebuilder:default=Strict
+	// +optional
+	Mode AAuthAuthenticationMode `json:"mode,omitempty"`
+
+	// requiredScheme specifies the minimum authentication scheme level required.
+	// Schemes form a hierarchy: Hwk < Jwks < Jwt. Any scheme at or above the required
+	// level is accepted.
+	// +kubebuilder:default=Hwk
+	// +optional
+	RequiredScheme AAuthRequiredScheme `json:"requiredScheme,omitempty"`
+
+	// timestampTolerance specifies the maximum allowed age (in seconds) of the signature timestamp.
+	// Signatures older than this value are rejected to prevent replay attacks.
+	// +kubebuilder:default=60
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=86400
+	// +optional
+	TimestampTolerance *uint64 `json:"timestampTolerance,omitempty"`
+
+	// challenge specifies the challenge response configuration for progressive authentication.
+	// When a request does not meet the required scheme level, the proxy returns a 401 response
+	// with an Agent-Auth header indicating what is needed.
+	// +optional
+	Challenge *AAuthChallenge `json:"challenge,omitempty"`
+}
+
+// AAuthChallenge configures the challenge response for AAuth progressive authentication.
+type AAuthChallenge struct {
+	// authServer specifies the URL of the authorization server that agents should contact
+	// to obtain authorization tokens (for jwt scheme requirement).
+	// +required
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=2000
+	AuthServer string `json:"authServer"`
 }
 
 type SecretSelector struct {
