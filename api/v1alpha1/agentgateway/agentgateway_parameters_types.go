@@ -170,15 +170,6 @@ type IstioSpec struct {
 	//
 	// +optional
 	TrustDomain string `json:"trustDomain,omitempty"`
-	// The Istio ambient dataplane mode label applied to the proxy pod.
-	// Set to "ambient" for waypoint proxies so ztunnel can intercept inbound
-	// traffic (required for the PROXY protocol sandwich pattern).
-	// Set to "none" for ingress gateways that handle external traffic directly.
-	// If not set, defaults to "none".
-	//
-	// +optional
-	// +kubebuilder:validation:Enum=none;ambient
-	DataplaneMode string `json:"dataplaneMode,omitempty"`
 }
 
 // +kubebuilder:validation:XValidation:rule="self.min <= self.max",message="The 'min' value must be less than or equal to the 'max' value."

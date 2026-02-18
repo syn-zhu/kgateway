@@ -424,6 +424,17 @@ spec:
                     description: The address of the Istio CA. If unset, defaults to
                       `https://istiod.istio-system.svc:15012`.
                     type: string
+                  dataplaneMode:
+                    description: |-
+                      The Istio ambient dataplane mode label applied to the proxy pod.
+                      Set to "ambient" for waypoint proxies so ztunnel can intercept inbound
+                      traffic (required for the PROXY protocol sandwich pattern).
+                      Set to "none" for ingress gateways that handle external traffic directly.
+                      If not set, defaults to "none".
+                    enum:
+                    - none
+                    - ambient
+                    type: string
                   trustDomain:
                     description: The Istio trust domain. If not set, defaults to `cluster.local`.
                     type: string

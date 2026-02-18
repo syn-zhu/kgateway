@@ -1286,17 +1286,12 @@ func resolveGatewayTLS(port gwv1.PortNumber, gw *gwv1.GatewayTLSConfig) *gwv1.TL
 	return &f.Default
 }
 
-// IstioProxyProtocol is the protocol type used by Istio ztunnel for third-party waypoints.
-// ztunnel sends PROXY protocol v2 frames to port 15088 with source identity in TLV 0xD0.
-const IstioProxyProtocol gwv1.ProtocolType = "istio.io/PROXY"
-
 var supportedProtocols = sets.New(
 	gwv1.HTTPProtocolType,
 	gwv1.HTTPSProtocolType,
 	gwv1.TLSProtocolType,
 	gwv1.TCPProtocolType,
-	gwv1.ProtocolType(protocol.HBONE),
-	IstioProxyProtocol)
+	gwv1.ProtocolType(protocol.HBONE))
 
 func listenerProtocolToAgw(p gwv1.ProtocolType) (string, error) {
 	switch p {
@@ -1309,9 +1304,6 @@ func listenerProtocolToAgw(p gwv1.ProtocolType) (string, error) {
 		// TODO: check if TLS/TCP alpha features are supported
 		return string(p), nil
 	case gwv1.ProtocolType(protocol.HBONE):
-		return string(p), nil
-	// Istio ambient mesh waypoint protocols
-	case IstioProxyProtocol:
 		return string(p), nil
 	}
 	up := gwv1.ProtocolType(strings.ToUpper(string(p)))

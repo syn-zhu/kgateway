@@ -2072,6 +2072,58 @@ spec:
                   sets 'timeouts' and 'retries', and policy B sets 'retries', the effective policy would be 'timeouts' from policy A,
                   and 'retries' from policy B.
                 properties:
+                  aAuthAuthentication:
+                    description: |-
+                      aAuthAuthentication authenticates agents using the AAuth protocol (RFC 9421 HTTP Message Signatures).
+                      AAuth provides progressive authentication levels: hwk (any signature), jwks (verifiable identity),
+                      and jwt (authorization token with delegated claims).
+                    properties:
+                      challenge:
+                        description: |-
+                          challenge specifies the challenge response configuration for progressive authentication.
+                          When a request does not meet the required scheme level, the proxy returns a 401 response
+                          with an Agent-Auth header indicating what is needed.
+                        properties:
+                          authServer:
+                            description: |-
+                              authServer specifies the URL of the authorization server that agents should contact
+                              to obtain authorization tokens (for jwt scheme requirement).
+                            maxLength: 2000
+                            minLength: 1
+                            type: string
+                        required:
+                        - authServer
+                        type: object
+                      mode:
+                        default: Strict
+                        description: mode specifies the validation mode for AAuth
+                          authentication.
+                        enum:
+                        - Strict
+                        - Optional
+                        - Permissive
+                        type: string
+                      requiredScheme:
+                        default: Hwk
+                        description: |-
+                          requiredScheme specifies the minimum authentication scheme level required.
+                          Schemes form a hierarchy: Hwk < Jwks < Jwt. Any scheme at or above the required
+                          level is accepted.
+                        enum:
+                        - Hwk
+                        - Jwks
+                        - Jwt
+                        type: string
+                      timestampTolerance:
+                        default: 60
+                        description: |-
+                          timestampTolerance specifies the maximum allowed age (in seconds) of the signature timestamp.
+                          Signatures older than this value are rejected to prevent replay attacks.
+                        format: int64
+                        maximum: 86400
+                        minimum: 1
+                        type: integer
+                    type: object
                   apiKeyAuthentication:
                     description: apiKeyAuthentication authenticates users based on
                       a configured API Key.

@@ -28,14 +28,19 @@ spec:
           (deepCopy ($gateway.gatewayAnnotations | default dict))
           $promAnnotations
           (include "kgateway.gateway.gatewayNameAnnotation" . | fromYaml)
-          ((and (hasKey $gateway "istio") (eq ($gateway.istio.dataplaneMode | default "none") "ambient")) | ternary (dict "ambient.istio.io/dns-capture" "false") (dict))
        ) | nindent 8 }}
       labels:
         {{- toYaml (merge
           (dict "gateway.networking.k8s.io/gateway-class-name" .Values.agentgateway.gatewayClassName)
           (include "kgateway.gateway.selectorLabels" . | fromYaml)
           ($gateway.gatewayLabels | default dict)
-          ((hasKey $gateway "istio") | ternary (dict "istio.io/dataplane-mode" ($gateway.istio.dataplaneMode | default "none") "sidecar.istio.io/inject" "false") (dict))
+                 ) | nindent 8 }}
+      labels:
+        {{- toYaml (merge
+          (dict "gateway.networking.k8s.io/gateway-class-name" .Values.agentgateway.gatewayClassName)
+          (include "kgateway.gateway.selectorLabels" . | fromYaml)
+          ($gateway.gatewayLabels | default dict)
+          ((hasKey $gateway "istio") | ternary (dict "istio.io/dataplane-mode" "none" "sidecar.istio.io/inject" "false") (dict))
         ) | nindent 8 }}
     spec:
       serviceAccountName: {{ include "kgateway.gateway.fullname" . }}

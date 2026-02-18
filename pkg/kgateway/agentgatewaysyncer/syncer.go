@@ -464,7 +464,6 @@ func (s *Syncer) getBindProtocol(obj *translator.GatewayListener) api.Bind_Proto
 // getTunnelProtocol determines the tunnel protocol for a Gateway listener.
 // Istio ambient mesh waypoint protocols require specific tunnel termination:
 //   - HBONE: HBONE_WAYPOINT — proxy terminates ztunnel's HBONE (HTTP/2 CONNECT over mTLS)
-//   - istio.io/PROXY: PROXY — proxy parses PROXY protocol v2 header with identity in TLV 0xD0
 func (s *Syncer) getTunnelProtocol(obj *translator.GatewayListener) api.Bind_TunnelProtocol {
 	switch obj.ParentInfo.Protocol {
 	case gwv1.ProtocolType(protocol.HBONE):

@@ -76,7 +76,6 @@ func (a *AgentgatewayParametersApplier) ApplyToHelmValues(vals *deployer.HelmCon
 		}
 		setIfNonZero(&res.Istio.CaAddress, configs.Istio.CaAddress)
 		setIfNonZero(&res.Istio.TrustDomain, configs.Istio.TrustDomain)
-		setIfNonZero(&res.Istio.DataplaneMode, configs.Istio.DataplaneMode)
 	}
 	setIfNonNil(&res.RawConfig, configs.RawConfig)
 
