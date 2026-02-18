@@ -431,13 +431,12 @@ func (s *Syncer) getProtocolAndTLSConfig(obj *translator.GatewayListener) (api.P
 		return api.Protocol_TLS, tlsConfig, true
 	case gwv1.TCPProtocolType:
 		return api.Protocol_TCP, nil, true
-	// Istio ambient mesh waypoint protocols — after tunnel termination the inner
-	// protocol is HTTP, but HBONE must be signaled to the proxy so it activates
-	// the default passthrough route for unmatched service traffic.
-	case gwv1.ProtocolType(protocol.HBONE):
+	// Istio ambient mesh waypoint protocols — both HBONE and PROXY are waypoint
+	// modes, so signal Protocol_HBONE to the proxy to activate the default
+	// passthrough route for unmatched service traffic.  The Bind's tunnelProtocol
+	// (HBONE_WAYPOINT vs PROXY) controls how inbound traffic is parsed.
+	case gwv1.ProtocolType(protocol.HBONE), translator.IstioProxyProtocol:
 		return api.Protocol_HBONE, nil, true
-	case translator.IstioProxyProtocol:
-		return api.Protocol_HTTP, nil, true
 	default:
 		return api.Protocol_HTTP, nil, false // Unsupported protocol
 	}
