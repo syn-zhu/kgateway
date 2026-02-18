@@ -163,7 +163,7 @@ func GenerateSupportedKinds(l gwv1.Listener) ([]gwv1.RouteGroupKind, bool) {
 		// UDP route not support
 	// Istio ambient mesh waypoint protocols — after tunnel termination the inner
 	// protocol is HTTP, so HTTPRoute and GRPCRoute are both valid.
-	case IstioProxyProtocol, gwv1.ProtocolType(protocol.HBONE):
+	case gwv1.ProtocolType(protocol.HBONE):
 		supported = []gwv1.RouteGroupKind{
 			toRouteKind(wellknown.HTTPRouteGVK),
 			toRouteKind(wellknown.GRPCRouteGVK),
