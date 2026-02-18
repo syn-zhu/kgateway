@@ -2,6 +2,8 @@ module github.com/kgateway-dev/kgateway/v2
 
 go 1.25.7
 
+replace github.com/agentgateway/agentgateway => ../agentgateway
+
 require (
 	// Also update AgentgatewayDefaultTag in pkg/deployer/wellknown.go and test/deployer/testdata/*
 	github.com/agentgateway/agentgateway v0.11.2

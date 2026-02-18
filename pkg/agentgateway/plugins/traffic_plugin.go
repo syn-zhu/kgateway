@@ -819,20 +819,20 @@ func processAAuthPolicy(
 
 	switch aauth.Mode {
 	case agentgateway.AAuthAuthenticationModeOptional:
-		p.Mode = int32(api.TrafficPolicySpec_AAuth_OPTIONAL)
+		p.Mode = api.TrafficPolicySpec_AAuth_OPTIONAL
 	case agentgateway.AAuthAuthenticationModePermissive:
-		p.Mode = int32(api.TrafficPolicySpec_AAuth_PERMISSIVE)
+		p.Mode = api.TrafficPolicySpec_AAuth_PERMISSIVE
 	default: // Strict is default
-		p.Mode = int32(api.TrafficPolicySpec_AAuth_STRICT)
+		p.Mode = api.TrafficPolicySpec_AAuth_STRICT
 	}
 
 	switch aauth.RequiredScheme {
 	case agentgateway.AAuthRequiredSchemeJwks:
-		p.RequiredScheme = int32(api.TrafficPolicySpec_AAuth_JWKS)
+		p.RequiredScheme = api.TrafficPolicySpec_AAuth_JWKS
 	case agentgateway.AAuthRequiredSchemeJwt:
-		p.RequiredScheme = int32(api.TrafficPolicySpec_AAuth_JWT_SCHEME)
+		p.RequiredScheme = api.TrafficPolicySpec_AAuth_JWT_SCHEME
 	default: // Hwk is default
-		p.RequiredScheme = int32(api.TrafficPolicySpec_AAuth_HWK)
+		p.RequiredScheme = api.TrafficPolicySpec_AAuth_HWK
 	}
 
 	if aauth.TimestampTolerance != nil {
